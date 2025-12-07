@@ -1,0 +1,8 @@
+numpy
+matplotlib
+opencv-python-headless
+pytest
+pytest-timeout
+torchvision
+tqdm
+torch
