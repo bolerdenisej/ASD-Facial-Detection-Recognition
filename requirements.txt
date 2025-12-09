@@ -1,8 +1,21 @@
-numpy
-matplotlib
+# Core deep learning framework
+torch
+torchvision
+
+# Computer vision and image processing
 opencv-python-headless
+Pillow
+
+# Numerical computing and data science
+numpy
+scikit-learn
+
+# Utilities
+tqdm
+
+# Testing (optional)
 pytest
 pytest-timeout
-torchvision
-tqdm
-torch
+
+# Visualization (optional, useful for debugging)
+matplotlib
