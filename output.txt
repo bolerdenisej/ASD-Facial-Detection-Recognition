@@ -1,0 +1,83 @@
+❯ python emotion_classifier.py --epochs 20 --device auto
+
+Loading data...
+Loaded 4289 anger images from training set
+Loaded 4289 disgust images from training set
+Loaded 4289 fear images from training set
+Loaded 4289 happy images from training set
+Loaded 4289 neutral images from training set
+Loaded 4289 sad images from training set
+Loaded 4289 surprise images from training set
+Loaded 595 anger images from test set
+Loaded 595 disgust images from test set
+Loaded 595 fear images from test set
+Loaded 595 happy images from test set
+Loaded 595 neutral images from test set
+Loaded 595 sad images from test set
+Loaded 595 surprise images from test set
+
+Train: 30023 images
+Test: 4165 images
+
+Device: cpu
+Epoch 1/20: 100%|██████████████████████████████████████████████| 470/470 [02:37<00:00,  2.99it/s, loss=1.211, acc=38.5%]
+Epoch 1: loss=1.629, acc=38.5%
+Epoch 2/20: 100%|██████████████████████████████████████████████| 470/470 [02:37<00:00,  2.98it/s, loss=1.459, acc=51.4%]
+Epoch 2: loss=1.374, acc=51.4%
+Epoch 3/20: 100%|██████████████████████████████████████████████| 470/470 [02:35<00:00,  3.01it/s, loss=1.028, acc=55.6%]
+Epoch 3: loss=1.290, acc=55.6%
+Epoch 4/20: 100%|██████████████████████████████████████████████| 470/470 [02:35<00:00,  3.02it/s, loss=1.008, acc=58.1%]
+Epoch 4: loss=1.238, acc=58.1%
+Epoch 5/20: 100%|██████████████████████████████████████████████| 470/470 [02:37<00:00,  2.99it/s, loss=1.348, acc=59.3%]
+Epoch 5: loss=1.204, acc=59.3%
+Epoch 6/20: 100%|██████████████████████████████████████████████| 470/470 [02:36<00:00,  2.99it/s, loss=1.136, acc=61.2%]
+Epoch 6: loss=1.172, acc=61.2%
+Epoch 7/20: 100%|██████████████████████████████████████████████| 470/470 [02:35<00:00,  3.02it/s, loss=0.815, acc=62.2%]
+Epoch 7: loss=1.146, acc=62.2%
+Epoch 8/20: 100%|██████████████████████████████████████████████| 470/470 [02:37<00:00,  2.98it/s, loss=1.150, acc=63.1%]
+Epoch 8: loss=1.132, acc=63.1%
+Epoch 9/20: 100%|██████████████████████████████████████████████| 470/470 [02:36<00:00,  3.01it/s, loss=1.139, acc=63.9%]
+Epoch 9: loss=1.108, acc=63.9%
+Epoch 10/20: 100%|█████████████████████████████████████████████| 470/470 [02:39<00:00,  2.94it/s, loss=1.634, acc=64.9%]
+Epoch 10: loss=1.097, acc=64.9%
+Epoch 11/20: 100%|█████████████████████████████████████████████| 470/470 [02:35<00:00,  3.02it/s, loss=0.686, acc=65.5%]
+Epoch 11: loss=1.086, acc=65.5%
+Epoch 12/20: 100%|█████████████████████████████████████████████| 470/470 [02:38<00:00,  2.97it/s, loss=0.945, acc=66.3%]
+Epoch 12: loss=1.068, acc=66.3%
+Epoch 13/20: 100%|█████████████████████████████████████████████| 470/470 [02:36<00:00,  3.01it/s, loss=1.378, acc=66.8%]
+Epoch 13: loss=1.059, acc=66.8%
+Epoch 14/20: 100%|█████████████████████████████████████████████| 470/470 [02:38<00:00,  2.96it/s, loss=1.544, acc=67.6%]
+Epoch 14: loss=1.047, acc=67.6%
+Epoch 15/20: 100%|█████████████████████████████████████████████| 470/470 [02:35<00:00,  3.01it/s, loss=1.048, acc=67.6%]
+Epoch 15: loss=1.037, acc=67.6%
+Epoch 16/20: 100%|█████████████████████████████████████████████| 470/470 [02:37<00:00,  2.98it/s, loss=0.754, acc=68.2%]
+Epoch 16: loss=1.025, acc=68.2%
+Epoch 17/20: 100%|█████████████████████████████████████████████| 470/470 [02:38<00:00,  2.97it/s, loss=1.037, acc=68.7%]
+Epoch 17: loss=1.019, acc=68.7%
+Epoch 18/20: 100%|█████████████████████████████████████████████| 470/470 [02:37<00:00,  2.98it/s, loss=0.773, acc=68.8%]
+Epoch 18: loss=1.011, acc=68.8%
+Epoch 19/20: 100%|█████████████████████████████████████████████| 470/470 [02:36<00:00,  3.01it/s, loss=0.828, acc=69.5%]
+Epoch 19: loss=0.999, acc=69.5%
+Epoch 20/20: 100%|█████████████████████████████████████████████| 470/470 [02:36<00:00,  3.01it/s, loss=1.962, acc=69.9%]
+Epoch 20: loss=0.994, acc=69.9%
+
+Test accuracy: 79.86%
+
+Per-class accuracy:
+  anger     : 86.72% (595 samples)
+  disgust   : 72.77% (595 samples)
+  fear      : 97.14% (595 samples)
+  happy     : 82.35% (595 samples)
+  neutral   : 63.19% (595 samples)
+  sad       : 71.09% (595 samples)
+  surprise  : 85.71% (595 samples)
+
+Confusion Matrix (rows = true, columns = predicted):
+
+[[516  16  22   4   6  11  20]
+ [ 26 433   8  29  44  45  10]
+ [  2   1 578   1   7   2   4]
+ [ 13  21  10 490  18  20  23]
+ [ 11  53   6  30 376  82  37]
+ [ 13  29  17  34  57 423  22]
+ [  6  10  47   5   9   8 510]]

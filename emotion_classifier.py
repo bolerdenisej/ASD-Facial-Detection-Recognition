@@ -2,7 +2,7 @@
 Emotion classifier for 7 emotion classes using facial expressions.
 
 Usage:
-  python emotion_classifier.py --data-dir ./data --epochs 10 --device auto
+  python emotion_classifier.py --data-dir ./raf_data --epochs 10 --device auto
 """
 
 import torch
@@ -16,16 +16,17 @@ import numpy as np
 from tqdm import tqdm
 import torchvision.transforms as transforms
 from torch.utils.data import Dataset, DataLoader
+from sklearn.metrics import confusion_matrix
 
 # --- 1. DATASET and AUGMENTATION ---
 
 # Define the 7 emotion classes
-EMOTION_CLASSES = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
+EMOTION_CLASSES = ['anger', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
 NUM_CLASSES = len(EMOTION_CLASSES)
 
 class EmotionDataset(Dataset):
     """Dataset wrapper for emotion classification with optional augmentation.
-    Images are expected to be 100x100 RGB color pixels."""
+    Images are 75x75 grayscale (converted to RGB 3-channel format for the model)."""
     def __init__(self, images, labels, augment: bool = False):
         self.images = images
         self.labels = labels
@@ -39,15 +40,17 @@ class EmotionDataset(Dataset):
         if augment:
             self.transform = transforms.Compose([
                 transforms.ToPILImage(),
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomAffine(degrees=10, translate=(0.05, 0.05)),
-                transforms.ColorJitter(brightness=0.1, contrast=0.1),
+                transforms.RandomResizedCrop(75, scale=(0.9, 1.1)),  # slight scale/crop
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.RandomRotation(degrees=10),
                 transforms.ToTensor(),
                 transforms.Normalize(mean, std),
+                transforms.RandomErasing(p=0.25)  # optional, can help robustness
             ])
         else:
             self.transform = transforms.Compose([
                 transforms.ToPILImage(),
+                transforms.Resize((75, 75)),
                 transforms.ToTensor(),
                 transforms.Normalize(mean, std),
             ])
@@ -67,8 +70,11 @@ class EmotionClassifier(nn.Module):
         # 3 conv layers, 3 pooling layers, 2 fully connected layers, 1 dropout layer.
         # Input images are 100x100 RGB (3 channels).
         self.conv1 = nn.Conv2d(3, 32, 5)   # 3 channels now
+        self.batchnorm1 = nn.BatchNorm2d(32)
         self.conv2 = nn.Conv2d(32, 64, 5)
+        self.batchnorm2 = nn.BatchNorm2d(64)
         self.conv3 = nn.Conv2d(64, 128, 3)
+        self.batchnorm3 = nn.BatchNorm2d(128)
         self.pool = nn.MaxPool2d(2, 2)
 
         # Calculate the size after convolutions for the fully connected layer
@@ -77,14 +83,14 @@ class EmotionClassifier(nn.Module):
         # conv2 (5x5):             48  - 5 + 1 = 44  -> pool -> 22
         # conv3 (3x3):             22  - 3 + 1 = 20  -> pool -> 10
         # So we get 128 * 10 * 10 features.
-        self.fc1 = nn.Linear(128 * 10 * 10, 256)
+        self.fc1 = nn.Linear(128 * 6 * 6, 256)
         self.dropout = nn.Dropout(0.5)
         self.fc2 = nn.Linear(256, num_classes)
 
     def forward(self, x):
         # Conv -> ReLU -> Pool (3x), then Flatten -> FC -> Dropout -> FC
-        x = self.pool(F.relu(self.conv1(x)))  # -> [B, 32, 48, 48]
-        x = self.pool(F.relu(self.conv2(x)))  # -> [B, 64, 22, 22]
+        x = self.pool(F.relu(self.batchnorm1(self.conv1(x))))  # -> [B, 32, 48, 48]
+        x = self.pool(F.relu(self.batchnorm2(self.conv2(x))))  # -> [B, 64, 22, 22]
         x = self.pool(F.relu(self.conv3(x)))  # -> [B, 128, 10, 10]
 
         x = torch.flatten(x, 1)
@@ -96,12 +102,13 @@ class EmotionClassifier(nn.Module):
 
 # --- 3. DATA LOADING ---
 
-def load_data(data_dir: str = './data'):
+def load_data(data_dir: str = './raf_data'):
     """Load emotion images from train and test folders with 7 emotion classes."""
     def load_images_from_folder(folder_path: Path):
-        """Load all images from a folder. Images are expected to be 100x100 RGB."""
+        """Load all images from a folder. Images are 75x75 grayscale but converted to RGB (3 channels)."""
         images = []
-        image_files = sorted(folder_path.glob('*.jpg'))
+        # Load both .jpg and .png files
+        image_files = sorted(list(folder_path.glob('*.jpg')) + list(folder_path.glob('*.png')))
         for img_path in image_files:
             try:
                 img = Image.open(img_path)
@@ -167,8 +174,8 @@ def train(model,
     print(f"Device: {device}")
     model.to(device)
 
-    optimizer = optim.Adam(model.parameters(), lr=lr)
-    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.05)
 
     dataset = EmotionDataset(train_images, train_labels, augment=True)
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=2)
@@ -233,6 +240,10 @@ def evaluate(model, test_images, test_labels, device: str = 'auto'):
             class_acc = (all_predictions[class_mask] == all_labels[class_mask]).mean()
             print(f'  {emotion:10s}: {class_acc*100:.2f}% ({class_mask.sum()} samples)')
     
+    cm = confusion_matrix(all_labels, all_predictions, labels=list(range(NUM_CLASSES)))
+    print('\nConfusion Matrix (rows = true, columns = predicted):\n')
+    print(cm)
+    
     return accuracy
 
 
@@ -240,7 +251,7 @@ def evaluate(model, test_images, test_labels, device: str = 'auto'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train emotion classifier for 7 emotion classes')
-    parser.add_argument('--data-dir', type=str, default='./data')
+    parser.add_argument('--data-dir', type=str, default='./raf_data')
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--output-model', type=str, default='emotion_classifier.pth')
     parser.add_argument('--device', type=str, default='auto')
@@ -250,6 +261,9 @@ if __name__ == '__main__':
     train_images, train_labels, test_images, test_labels = load_data(args.data_dir)
     print(f'\nTrain: {len(train_images)} images')
     print(f'Test: {len(test_images)} images\n')
+
+    if len(train_images) == 0:
+        raise ValueError(f'No training data found in {args.data_dir}. Please check the data directory path.')
 
     model = EmotionClassifier(num_classes=NUM_CLASSES)
     train(model, train_images, train_labels, epochs=args.epochs, device=args.device)

@@ -28,7 +28,7 @@ class EmotionRecognizer:
         # Preprocessing to match training pipeline
         self.transform = transforms.Compose([
             transforms.ToPILImage(),             # expects H x W x C (RGB)
-            transforms.Resize((100, 100)),      # ensure 100x100
+            transforms.Resize((75, 75)),        # ensure 75x75 to match training
             transforms.ToTensor(),
             transforms.Normalize(
                 (0.5, 0.5, 0.5),
@@ -45,8 +45,8 @@ class EmotionRecognizer:
         face_rgb = cv2.cvtColor(face_bgr, cv2.COLOR_BGR2RGB)
 
         # Preprocess
-        face_tensor = self.transform(face_rgb)            # [3, 100, 100]
-        face_tensor = face_tensor.unsqueeze(0).to(self.device)  # [1, 3, 100, 100]
+        face_tensor = self.transform(face_rgb)            # [3, 75, 75]
+        face_tensor = face_tensor.unsqueeze(0).to(self.device)  # [1, 3, 75, 75]
 
         with torch.no_grad():
             logits = self.model(face_tensor)
