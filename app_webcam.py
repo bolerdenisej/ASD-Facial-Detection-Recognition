@@ -36,7 +36,7 @@ def main():
     last_score_increase_time = 0.0
     match_display_duration = 1.0  # seconds to show "Matched!" message
     score_flash_duration = 0.5  # seconds to show score in green when it increases
-    confidence_threshold = 0.4   # only count match if conf >= 40%
+    confidence_threshold = 0.3   # only count match if conf >= 30%
     no_face_frame_count = 0
     no_face_threshold = 10  # Show "No face detected" after 10 consecutive frames
 
