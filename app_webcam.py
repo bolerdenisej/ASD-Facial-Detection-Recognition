@@ -33,8 +33,12 @@ def main():
     target_emotion = pick_new_target()
     score = 0
     last_match_time = 0.0
+    last_score_increase_time = 0.0
     match_display_duration = 1.0  # seconds to show "Matched!" message
-    confidence_threshold = 0.6    # only count match if conf >= 60%
+    score_flash_duration = 0.5  # seconds to show score in green when it increases
+    confidence_threshold = 0.4   # only count match if conf >= 40%
+    no_face_frame_count = 0
+    no_face_threshold = 10  # Show "No face detected" after 10 consecutive frames
 
     while True:
         ret, frame = cap.read()
@@ -48,17 +52,22 @@ def main():
         det = face_detector.detect_best_detection(frame)
 
         if det is None:
-            cv2.putText(
-                vis,
-                "No face detected",
-                (30, 70),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.9,
-                (0, 0, 255),
-                2,
-                cv2.LINE_AA,
-            )
+            no_face_frame_count += 1
+            # Only show "No face detected" after threshold number of frames
+            if no_face_frame_count >= no_face_threshold:
+                cv2.putText(
+                    vis,
+                    "No face detected",
+                    (30, 70),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.9,
+                    (0, 0, 255),
+                    2,
+                    cv2.LINE_AA,
+                )
         else:
+            # Reset counter when face is detected
+            no_face_frame_count = 0
             score_det, left, top, right, bottom = det
 
             # Draw box using helper
@@ -78,7 +87,7 @@ def main():
                     (left, bottom + 25),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.7,
-                    (255, 255, 255),
+                    (255, 0, 0),
                     2,
                     cv2.LINE_AA,
                 )
@@ -88,6 +97,7 @@ def main():
                 if label == target_emotion and conf >= confidence_threshold:
                     score += 1
                     last_match_time = now
+                    last_score_increase_time = now
                     # Pick a new target emotion
                     target_emotion = pick_new_target(target_emotion)
 
@@ -100,20 +110,25 @@ def main():
             (30, 40),
             cv2.FONT_HERSHEY_SIMPLEX,
             1.0,
-            (0, 255, 255),
+            (0, 0, 0),
             2,
             cv2.LINE_AA,
         )
 
-        # Score
+        # Score (green when just increased, black otherwise)
         score_text = f"Score: {score}"
+        now = time.time()
+        if now - last_score_increase_time < score_flash_duration:
+            score_color = (0, 255, 0)  # Green when just increased
+        else:
+            score_color = (0, 0, 0)  # Black otherwise
         cv2.putText(
             vis,
             score_text,
             (30, 110),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.9,
-            (0, 255, 0),
+            score_color,
             2,
             cv2.LINE_AA,
         )
